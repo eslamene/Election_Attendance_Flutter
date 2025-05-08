@@ -1,6 +1,7 @@
 {
-  "appTitle": "Judges Election Attendance",
+  "appTitle": "Attending the General Assembly of the Court of Cassation",
   "attendanceModes": "Attendance Modes",
+  "home": "Main",
   "scanQrBarcode": "Scan QR/Barcode",
   "confirmUser": "Confirm User",
   "settings": "Settings",
