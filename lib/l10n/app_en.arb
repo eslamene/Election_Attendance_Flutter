@@ -1,0 +1,17 @@
+{
+  "appTitle": "Judges Election Attendance",
+  "attendanceModes": "Attendance Modes",
+  "scanQrBarcode": "Scan QR/Barcode",
+  "confirmUser": "Confirm User",
+  "settings": "Settings",
+  "selectAttendanceMode": "Select Attendance Mode",
+  "startScan": "Start Scan",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "apiEndpointConfig": "API endpoint config here.",
+  "scanError": "Scan failed or invalid code.",
+  "userNotFound": "User not found.",
+  "attendanceSuccess": "Attendance confirmed!",
+  "attendanceFailed": "Attendance failed. Please try again.",
+  "changeLanguage": "Change Language"
+} 

@@ -1,0 +1,17 @@
+{
+  "appTitle": "تسجيل الحضور للوكيل",
+  "attendanceModes": "أنماط الحضور",
+  "scanQrBarcode": "مسح رمز QR/باركود",
+  "confirmUser": "تأكيد المستخدم",
+  "settings": "الإعدادات",
+  "selectAttendanceMode": "اختر نمط الحضور",
+  "startScan": "بدء المسح",
+  "confirm": "تأكيد",
+  "cancel": "إلغاء",
+  "apiEndpointConfig": "إعداد نقطة نهاية API هنا.",
+  "scanError": "فشل المسح أو رمز غير صالح.",
+  "userNotFound": "المستخدم غير موجود.",
+  "attendanceSuccess": "تم تأكيد الحضور!",
+  "attendanceFailed": "فشل تأكيد الحضور. حاول مرة أخرى.",
+  "changeLanguage": "تغيير اللغة"
+} 
