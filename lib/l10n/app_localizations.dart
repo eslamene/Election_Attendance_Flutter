@@ -27,6 +27,14 @@ class AppLocalizations {
       'attendanceSuccess': 'Attendance confirmed!',
       'attendanceFailed': 'Attendance failed. Please try again.',
       'changeLanguage': 'Change Language',
+      'recentScans': 'Recent Scans',
+      'noScansYet': 'No scans yet',
+      'alreadyScanned': 'This user\'s attendance has already been recorded for this mode.',
+      'copyright': '© 2025 Elections',
+      'apiEndpoint': 'API Endpoint',
+      'saveApiEndpoint': 'Save API Endpoint',
+      'currentApiEndpoint': 'Current: {endpoint}',
+      'clearHistory': 'Clear History',
     },
     'ar': {
       'appTitle': 'تسجيل الحضور للوكيل',
@@ -44,6 +52,14 @@ class AppLocalizations {
       'attendanceSuccess': 'تم تأكيد الحضور!',
       'attendanceFailed': 'فشل تأكيد الحضور. حاول مرة أخرى.',
       'changeLanguage': 'تغيير اللغة',
+      'recentScans': 'المسحات الأخيرة',
+      'noScansYet': 'لم تقم بمسح حتى الآن',
+      'alreadyScanned': 'تم تسجيل حضور هذا المستخدم بالفعل لهذا النمط.',
+      'copyright': '© 2025 الانتخابات',
+      'apiEndpoint': 'نقطة نهاية API',
+      'saveApiEndpoint': 'حفظ نقطة نهاية API',
+      'currentApiEndpoint': 'الحالي: {endpoint}',
+      'clearHistory': 'مسح السجل',
     },
   };
 
@@ -64,6 +80,14 @@ class AppLocalizations {
   String get attendanceSuccess => _t('attendanceSuccess');
   String get attendanceFailed => _t('attendanceFailed');
   String get changeLanguage => _t('changeLanguage');
+  String get recentScans => _t('recentScans');
+  String get noScansYet => _t('noScansYet');
+  String get alreadyScanned => _t('alreadyScanned');
+  String get copyright => _t('copyright');
+  String get apiEndpoint => _t('apiEndpoint');
+  String get saveApiEndpoint => _t('saveApiEndpoint');
+  String currentApiEndpoint(String endpoint) => _t('currentApiEndpoint').replaceAll('{endpoint}', endpoint);
+  String get clearHistory => _t('clearHistory');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

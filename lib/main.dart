@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'services/api_service.dart';
 import 'models/user.dart';
-import 'widgets/user_card.dart';
 import 'models/attendance_mode.dart';
 import 'widgets/mode_selector.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/config_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
+import 'dart:math' as math;
+import 'widgets/custom_scanner.dart';
+import 'widgets/splash_screen.dart';
 
 void main() {
   runApp(const AttendanceApp());
@@ -111,8 +112,9 @@ class AttendanceApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            initialRoute: '/',
+            initialRoute: '/splash',
             routes: {
+              '/splash': (context) => const SplashScreen(),
               '/': (context) => const MainScaffold(),
               '/confirm': (context) => const ConfirmScreen(),
             },
@@ -129,13 +131,32 @@ class MainScaffold extends StatefulWidget {
   State<MainScaffold> createState() => _MainScaffoldState();
 }
 
-class _MainScaffoldState extends State<MainScaffold> {
+class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
+  late AnimationController _fabController;
 
   final List<Widget> _screens = [
     HomeScreen(),
     SettingsScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fabController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+      lowerBound: 0.0,
+      upperBound: 0.1,
+    );
+    _fabController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _fabController.dispose();
+    super.dispose();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -143,75 +164,214 @@ class _MainScaffoldState extends State<MainScaffold> {
     });
   }
 
+  void _onScanPressed() {
+    if (_selectedIndex != 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+      Future.delayed(const Duration(milliseconds: 100), () {
+        HomeScreen.scanFromNavBar?.call();
+      });
+    } else {
+      HomeScreen.scanFromNavBar?.call();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final fabScale = 1 + _fabController.value;
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: Stack(
+        children: [
+          _screens[_selectedIndex],
+        ],
+      ),
       extendBody: true,
+      floatingActionButton: _selectedIndex == 0
+          ? AnimatedBuilder(
+              animation: _fabController,
+              builder: (context, child) => Transform.scale(
+                scale: fabScale,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFD700), Color(0xFFFFE066)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.amber.withOpacity(0.5),
+                        blurRadius: 32,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.white, width: 6),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.qr_code_scanner, color: Colors.black, size: 40),
+                    onPressed: _onScanPressed,
+                  ),
+                ),
+              ),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(left: 24, right: 24, bottom: 16),
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
         child: PhysicalModel(
           color: Colors.transparent,
-          elevation: 12,
+          elevation: 18,
           borderRadius: BorderRadius.circular(40),
-          shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(40),
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: BottomNavigationBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              type: BottomNavigationBarType.fixed,
-              selectedFontSize: 14,
-              unselectedFontSize: 13,
-              selectedLabelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-              unselectedLabelStyle: GoogleFonts.poppins(),
-              currentIndex: _selectedIndex,
-              onTap: _onItemTapped,
-              showUnselectedLabels: true,
-              items: [
-                BottomNavigationBarItem(
-                  icon: _selectedIndex == 0
-                      ? Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          padding: const EdgeInsets.all(10),
-                          child: Icon(Icons.home, color: Colors.black, size: 28),
-                        )
-                      : Icon(Icons.home_outlined, color: Colors.black54, size: 28),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: _selectedIndex == 1
-                      ? Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          padding: const EdgeInsets.all(10),
-                          child: Icon(Icons.settings, color: Colors.black, size: 28),
-                        )
-                      : Icon(Icons.settings_outlined, color: Colors.black54, size: 28),
-                  label: loc.settings,
-                ),
-              ],
+          shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.18),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(40),
+            child: CustomBottomAppBar(
+              selectedIndex: _selectedIndex,
+              onItemTapped: _onItemTapped,
+              settingsLabel: loc.settings,
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+class CustomBottomAppBar extends StatelessWidget {
+  final int selectedIndex;
+  final void Function(int) onItemTapped;
+  final String settingsLabel;
+  const CustomBottomAppBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onItemTapped,
+    required this.settingsLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return BottomAppBar(
+      color: Colors.white,
+      elevation: 0,
+      shape: const CustomNotchedShape(),
+      notchMargin: 12,
+      child: SizedBox(
+        height: 72,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Expanded(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(32),
+                onTap: () => onItemTapped(0),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        selectedIndex == 0 ? Icons.home : Icons.home_outlined,
+                        color: selectedIndex == 0 ? Color(0xFFFFD700) : Colors.black54,
+                        size: 30,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        loc.appTitle,
+                        style: GoogleFonts.poppins(
+                          color: selectedIndex == 0 ? Color(0xFFFFD700) : Colors.black54,
+                          fontWeight: selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 80), // Space for FAB
+            Expanded(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(32),
+                onTap: () => onItemTapped(1),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        selectedIndex == 1 ? Icons.settings : Icons.settings_outlined,
+                        color: selectedIndex == 1 ? Color(0xFFFFD700) : Colors.black54,
+                        size: 30,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        settingsLabel,
+                        style: GoogleFonts.poppins(
+                          color: selectedIndex == 1 ? Color(0xFFFFD700) : Colors.black54,
+                          fontWeight: selectedIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CustomNotchedShape extends NotchedShape {
+  const CustomNotchedShape();
+  @override
+  Path getOuterPath(Rect host, Rect? guest) {
+    if (guest == null) {
+      return Path()..addRRect(RRect.fromRectAndRadius(host, const Radius.circular(40)));
+    }
+    final notchRadius = guest.width / 2.0 + 12;
+    final center = guest.center.dx;
+    final notchCenterY = guest.top;
+    final path = Path();
+    path.moveTo(host.left + 40, host.top);
+    path.lineTo(center - notchRadius, host.top);
+    path.arcTo(
+      Rect.fromCircle(center: Offset(center, notchCenterY), radius: notchRadius),
+      math.pi, math.pi, false,
+    );
+    path.lineTo(host.right - 40, host.top);
+    path.arcToPoint(
+      Offset(host.right, host.top + 40),
+      radius: const Radius.circular(40),
+    );
+    path.lineTo(host.right, host.bottom - 40);
+    path.arcToPoint(
+      Offset(host.right - 40, host.bottom),
+      radius: const Radius.circular(40),
+    );
+    path.lineTo(host.left + 40, host.bottom);
+    path.arcToPoint(
+      Offset(host.left, host.bottom - 40),
+      radius: const Radius.circular(40),
+    );
+    path.lineTo(host.left, host.top + 40);
+    path.arcToPoint(
+      Offset(host.left + 40, host.top),
+      radius: const Radius.circular(40),
+    );
+    path.close();
+    return path;
   }
 }
 
@@ -273,6 +433,7 @@ class ScanHistoryStore {
 // --- HomeScreen Modern Redesign ---
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+  static void Function()? scanFromNavBar;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -287,6 +448,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.didChangeDependencies();
     _loadSelectedMode();
     _loadHistory();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSelectedMode();
+    _loadHistory();
+    HomeScreen.scanFromNavBar = _startScan;
+  }
+
+  @override
+  void dispose() {
+    HomeScreen.scanFromNavBar = null;
+    super.dispose();
   }
 
   Future<void> _loadSelectedMode() async {
@@ -310,20 +485,19 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     final loc = AppLocalizations.of(context)!;
-    String scanResult = '';
-    try {
-      scanResult = await FlutterBarcodeScanner.scanBarcode(
-        '#FFD700',
-        loc.cancel,
-        true,
-        ScanMode.BARCODE,
-      );
-    } catch (e) {
-      scanResult = '';
-    }
-    if (!mounted) return;
+    String? scanResult = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (context) => CustomScannerScreen(
+          onDetect: (code) {
+            Navigator.of(context).pop(code);
+          },
+        ),
+        fullscreenDialog: true,
+      ),
+    );
+    if (!mounted || scanResult == null) return;
     scanResult = scanResult.trim();
-    if (scanResult == '-1' || scanResult.isEmpty) {
+    if (scanResult.isEmpty) {
       // User cancelled
       return;
     }
@@ -403,11 +577,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showErrorModal(String message) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24.0),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      builder: (context) => Container(
+        width: double.infinity,
+        padding: EdgeInsets.only(
+          top: 32,
+          left: 0,
+          right: 0,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        color: const Color(0xFFFDF8E7),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -421,7 +601,14 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)!.cancel),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFD700),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                elevation: 2,
+              ),
+              child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -430,21 +617,78 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHistoryCard(ScanHistoryItem item) {
+    Color chipColor;
+    switch (item.modeName) {
+      case 'First Attend':
+      case 'الحضور الأول':
+        chipColor = const Color(0xFFFFD700); // Gold
+        break;
+      case 'Second Attend':
+      case 'الحضور الثاني':
+        chipColor = Colors.blueAccent;
+        break;
+      default:
+        chipColor = Colors.grey;
+    }
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-          backgroundImage: (item.photoUrl != null && item.photoUrl!.isNotEmpty)
-              ? NetworkImage(item.photoUrl!)
-              : null,
-          child: (item.photoUrl == null || item.photoUrl!.isEmpty)
-              ? Icon(Icons.person, color: Theme.of(context).colorScheme.primary)
-              : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: chipColor.withOpacity(0.5), width: 1.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Avatar
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundImage: (item.photoUrl != null && item.photoUrl!.isNotEmpty)
+                  ? NetworkImage(item.photoUrl!)
+                  : null,
+              child: (item.photoUrl == null || item.photoUrl!.isEmpty)
+                  ? Icon(Icons.person, color: Theme.of(context).colorScheme.primary)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            // Name and chip
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.userName,
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Chip(
+                        label: Text(item.modeName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        backgroundColor: chipColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(item.userId, style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
+                      const Spacer(),
+                      Text(_formatTime(item.timestamp), style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        title: Text(item.userName, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        subtitle: Text('${item.modeName} • ${_formatTime(item.timestamp)}'),
-        trailing: Text(item.userId, style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
       ),
     );
   }
@@ -463,14 +707,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Judges Election Attendance', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 26)),
+        title: SizedBox(
+          height: 40,
+          child: Image.asset(
+            'assets/title-logo.png',
+            fit: BoxFit.contain,
+          ),
+        ),
         elevation: 0,
         backgroundColor: Colors.white,
         actions: [
           if (_history.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: 'Clear History',
+              tooltip: loc.clearHistory,
               onPressed: () async {
                 await ScanHistoryStore.clear();
                 _loadHistory();
@@ -490,11 +740,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Text('Recent Scans', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
+              child: Text(loc.recentScans, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
             ),
             Expanded(
               child: _history.isEmpty
-                  ? Center(child: Text('No scans yet', style: GoogleFonts.poppins(color: Colors.black38)))
+                  ? Center(child: Text(loc.noScansYet, style: GoogleFonts.poppins(color: Colors.black38)))
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       itemCount: _history.length,
@@ -504,21 +754,12 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0, top: 8.0),
               child: Center(
-                child: Text('© 2025 Elections', style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
+                child: Text(loc.copyright, style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
               ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _startScan,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
-        label: Text(loc.startScan, style: const TextStyle(color: Colors.black)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        elevation: 4,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
@@ -715,7 +956,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 children: [
                                   Icon(lang['icon'], color: isSelected ? Colors.black : Colors.black54, size: 20),
                                   const SizedBox(width: 6),
-                                  Text(
+            Text(
                                     lang['label'],
                                     style: GoogleFonts.poppins(
                                       color: isSelected ? Colors.black : Colors.black54,
@@ -739,7 +980,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: _onModeChanged,
                   ),
                   const SizedBox(height: 32),
-                  Text('API Endpoint', style: Theme.of(context).textTheme.titleMedium),
+                  Text(loc.apiEndpoint, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _apiController,
@@ -752,11 +993,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: _onApiEndpointSaved,
-                    child: Text('Save API Endpoint'),
+                    child: Text(loc.saveApiEndpoint),
                   ),
                   if (_apiEndpoint != null && _apiEndpoint!.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text('Current: $_apiEndpoint', style: const TextStyle(fontSize: 12)),
+                    Text(loc.currentApiEndpoint(_apiEndpoint!), style: const TextStyle(fontSize: 12)),
                   ],
                 ],
               ),

@@ -13,5 +13,13 @@
   "userNotFound": "User not found.",
   "attendanceSuccess": "Attendance confirmed!",
   "attendanceFailed": "Attendance failed. Please try again.",
-  "changeLanguage": "Change Language"
+  "changeLanguage": "Change Language",
+  "recentScans": "Recent Scans",
+  "noScansYet": "No scans yet",
+  "alreadyScanned": "This user's attendance has already been recorded for this mode.",
+  "copyright": "© 2025 Elections",
+  "apiEndpoint": "API Endpoint",
+  "saveApiEndpoint": "Save API Endpoint",
+  "currentApiEndpoint": "Current: {endpoint}",
+  "clearHistory": "Clear History"
 } 

@@ -13,5 +13,13 @@
   "userNotFound": "المستخدم غير موجود.",
   "attendanceSuccess": "تم تأكيد الحضور!",
   "attendanceFailed": "فشل تأكيد الحضور. حاول مرة أخرى.",
-  "changeLanguage": "تغيير اللغة"
+  "changeLanguage": "تغيير اللغة",
+  "alreadyScanned": "تم تسجيل حضور هذا المستخدم بالفعل لهذا النمط.",
+  "recentScans": "المسحات الأخيرة",
+  "noScansYet": "لم تقم بمسح حتى الآن",
+  "copyright": "© 2025 الانتخابات",
+  "apiEndpoint": "نقطة نهاية API",
+  "saveApiEndpoint": "حفظ نقطة نهاية API",
+  "currentApiEndpoint": "الحالي: {endpoint}",
+  "clearHistory": "مسح السجل"
 } 
