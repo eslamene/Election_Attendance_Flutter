@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'generated/app_localizations.dart';
 import 'services/api_service.dart';
 import 'models/user.dart';
 import 'models/attendance_mode.dart';
@@ -13,6 +12,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'widgets/custom_scanner.dart';
 import 'widgets/splash_screen.dart';
+import 'generated/app_localizations.dart';
 
 void main() {
   runApp(const AttendanceApp());
