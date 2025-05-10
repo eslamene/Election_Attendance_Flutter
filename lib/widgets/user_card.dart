@@ -11,7 +11,7 @@ class UserCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
-          children: [
+          children: [/*
             CircleAvatar(
               radius: 32,
               backgroundImage: user.photoUrl.isNotEmpty
@@ -20,14 +20,19 @@ class UserCard extends StatelessWidget {
               child: user.photoUrl.isEmpty
                   ? const Icon(Icons.person, size: 32)
                   : null,
-            ),
-            const SizedBox(width: 16),
+            )
+             const SizedBox(width: 16),
+            ,*/
+
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(user.name, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 4),
+                Text(user.jobTitle, style: Theme.of(context).textTheme.bodyMedium),
+                const SizedBox(height: 4),
                 Text('ID: ${user.id}', style: Theme.of(context).textTheme.bodySmall),
+
               ],
             ),
           ],

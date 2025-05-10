@@ -20,7 +20,7 @@ class ModeSelector extends StatelessWidget {
       hint: const Text('Select Attendance Mode'),
       items: modes
           .map((mode) => DropdownMenuItem(
-                value: mode.id,
+                value: mode.id.toString(),
                 child: Text(mode.name),
               ))
           .toList(),

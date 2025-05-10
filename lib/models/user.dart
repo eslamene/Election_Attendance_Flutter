@@ -1,22 +1,22 @@
 class User {
   final String id;
   final String name;
-  final String photoUrl;
+  final String jobTitle;
   // Add other fields as needed
 
-  User({required this.id, required this.name, required this.photoUrl});
+  User({required this.id, required this.name ,required this.jobTitle});
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as String,
+      id: json['referenceNumber'] as String,
       name: json['name'] as String,
-      photoUrl: json['photoUrl'] as String? ?? '',
+      jobTitle: json['jobTitle']['titleName'] as String,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
-        'photoUrl': photoUrl,
+    'jobTitle':jobTitle
       };
 } 

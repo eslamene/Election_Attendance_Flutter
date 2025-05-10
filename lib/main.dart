@@ -509,9 +509,9 @@ class _HomeScreenState extends State<HomeScreen> {
     // Check for duplicate scan
     final history = await ScanHistoryStore.load();
     final modeName = await _getModeName(_selectedModeId!);
-    final alreadyScanned = history.any((item) => item.userId == scanResult && item.modeName == modeName);
+    final alreadyScanned = history.any((item) => item.userId.toString() == scanResult && item.modeName == modeName);
     if (alreadyScanned) {
-      _showErrorModal(loc.userNotFound + '\n' + 'This user has already been scanned for this attendance mode.');
+      _showErrorModal( 'This user has already been scanned for this attendance mode.');
       return;
     }
     setState(() {}); // To show loading if needed
@@ -557,21 +557,28 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (confirmed == true) {
-      // Add to scan history
-      await ScanHistoryStore.add(ScanHistoryItem(
-        userId: user.id,
-        userName: user.name,
-        modeName: modeName ?? '',
-        timestamp: DateTime.now(),
-        photoUrl: user.photoUrl,
-      ));
-      _loadHistory();
+      final success = await ApiService().confirmAttendance(userId: user.id.toString(), modeId: _selectedModeId.toString());
+
+      if(success=='success') {
+        // Add to scan history
+        await ScanHistoryStore.add(ScanHistoryItem(
+            userId: user.id,
+            userName: user.name,
+            modeName: modeName ?? '',
+            timestamp: DateTime.now()
+        ));
+        _loadHistory();
+
+      }else {
+        _showErrorModal(success);
+
+      }
     }
   }
 
   Future<String?> _getModeName(String modeId) async {
     final modes = await ApiService().fetchAttendanceModes();
-    return modes.firstWhere((m) => m.id == modeId, orElse: () => AttendanceMode(id: '', name: '')).name;
+    return modes.firstWhere((m) => m.id.toString() == modeId, orElse: () => AttendanceMode(id: 0, name: '')).name;
   }
 
   void _showErrorModal(String message) {
@@ -679,7 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text(item.userId, style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
+                      Text(item.userId.toString(), style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
                       const Spacer(),
                       Text(_formatTime(item.timestamp), style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
                     ],
@@ -779,17 +786,6 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       _isLoading = true;
       _resultMessage = null;
     });
-    final success = await ApiService().confirmAttendance(userId: user.id, modeId: modeId);
-    setState(() {
-      _isLoading = false;
-      _resultMessage = success
-          ? AppLocalizations.of(context)!.attendanceSuccess
-          : AppLocalizations.of(context)!.attendanceFailed;
-    });
-    if (success) {
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
-    }
   }
 
   @override
@@ -897,12 +893,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _onModeChanged(String? id) {
-    final mode = _modes.firstWhere((m) => m.id == id, orElse: () => _modes.first);
+    print(id);
+    final mode = _modes.firstWhere((m) => m.id.toString() == id, orElse: () => _modes.first);
     setState(() {
-      _selectedModeId = mode.id;
+      _selectedModeId = mode.id.toString();
       _selectedModeName = mode.name;
     });
-    SettingsStore.saveMode(mode.id, mode.name);
+    SettingsStore.saveMode(mode.id.toString(), mode.name);
   }
 
   void _onApiEndpointSaved() async {
@@ -1052,7 +1049,7 @@ class UserCard extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Row(
           children: [
-            CircleAvatar(
+            /*CircleAvatar(
               radius: 36,
               backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               backgroundImage: user.photoUrl.isNotEmpty ? NetworkImage(user.photoUrl) : null,
@@ -1060,12 +1057,14 @@ class UserCard extends StatelessWidget {
                   ? Icon(Icons.person, size: 36, color: Theme.of(context).colorScheme.primary)
                   : null,
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 20),*/
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(user.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Text(user.jobTitle, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.black, fontWeight: FontWeight.bold , fontSize: 16)),
                   const SizedBox(height: 6),
                   Text('ID: ${user.id}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.black54)),
                 ],
