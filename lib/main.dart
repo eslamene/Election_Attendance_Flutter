@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'l10n/app_localizations.dart';
 import 'services/api_service.dart';
 import 'models/user.dart';
 import 'models/attendance_mode.dart';
@@ -13,6 +12,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'widgets/custom_scanner.dart';
 import 'widgets/splash_screen.dart';
+import 'generated/app_localizations.dart';
 
 void main() {
   runApp(const AttendanceApp());
@@ -37,8 +37,9 @@ class AttendanceApp extends StatelessWidget {
       create: (_) => LocaleProvider(),
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
+    final loc = AppLocalizations.of(context);
     return MaterialApp(
-            title: 'Judges Election Attendance',
+            title: loc?.appTitle ?? '',
       theme: ThemeData(
         useMaterial3: true,
               brightness: Brightness.light,
@@ -284,7 +285,7 @@ class CustomBottomAppBar extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        loc.appTitle,
+                        loc.home,
                         style: GoogleFonts.poppins(
                           color: selectedIndex == 0 ? Color(0xFFFFD700) : Colors.black54,
                           fontWeight: selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,

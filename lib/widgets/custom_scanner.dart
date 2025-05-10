@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../l10n/app_localizations.dart';
-
+import '../generated/app_localizations.dart';
 class CustomScannerScreen extends StatefulWidget {
   final void Function(String) onDetect;
   const CustomScannerScreen({super.key, required this.onDetect});

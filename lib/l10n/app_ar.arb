@@ -1,6 +1,7 @@
 {
-  "appTitle": "تسجيل الحضور للوكيل",
+  "appTitle": "حضور الجمعية العامة لمحكمة النقض",
   "attendanceModes": "أنماط الحضور",
+  "home": "الرئيسيه",
   "scanQrBarcode": "مسح رمز QR/باركود",
   "confirmUser": "تأكيد المستخدم",
   "settings": "الإعدادات",
